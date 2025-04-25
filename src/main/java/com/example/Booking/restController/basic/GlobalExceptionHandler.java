@@ -17,6 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -119,8 +120,11 @@ public class GlobalExceptionHandler {
 //    Handles invalid JSON/date formats in request body.
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<String>> handleJsonParseError(HttpMessageNotReadableException ex) {
+        String detailedMessage = Optional.ofNullable(ex.getMostSpecificCause())
+                .map(Throwable::getMessage)
+                .orElse("Malformed or unreadable request body.");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>(false, ErrorMessages.DATA_UNREADABLE, null));
+                .body(new ApiResponse<>(false, ErrorMessages.DATA_UNREADABLE, detailedMessage));
     }
 }
 

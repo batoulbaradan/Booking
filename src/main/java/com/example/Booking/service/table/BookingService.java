@@ -99,6 +99,7 @@ public class BookingService {
     // Also ensures check-in is before check-out.
     private void validateRoomAvailability(BookingDto bookingDto) {
 
+        //use when is there time
         if (!bookingDto.getCheckOut().isAfter(bookingDto.getCheckIn())) {
             throw new IllegalArgumentException("Check-out date must be after check-in date.");
         }

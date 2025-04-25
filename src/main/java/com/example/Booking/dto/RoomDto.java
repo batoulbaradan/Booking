@@ -15,8 +15,9 @@ public class RoomDto {
     @NotBlank(message = "Room number is required")
     private String roomNumber;
 
+    @NotNull(message = "Room capacity is required")
     @Min(value = 1, message = "Room capacity must be at least 1")
-    private int capacity;
+    private Integer capacity;
 
     @NotNull(message = "Price per night is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
