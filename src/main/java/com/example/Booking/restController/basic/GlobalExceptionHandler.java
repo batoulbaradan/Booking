@@ -120,7 +120,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<String>> handleJsonParseError(HttpMessageNotReadableException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiResponse<>(false, ErrorMessages.INVALID_DATE_FORMAT, null));
+                .body(new ApiResponse<>(false, ErrorMessages.DATA_UNREADABLE, null));
     }
 }
 

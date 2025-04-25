@@ -16,7 +16,7 @@ public class ErrorMessages {
     public static final String INVALID_PARAMETER = "Invalid parameter.";
     public static final String DUPLICATE_ROOM_NUMBER = "Room number is already taken. Please choose another.";
     public static final String CANCEL_BOOKING_ERROR = "Cancel Booking Error.";
-    public static final String INVALID_DATE_FORMAT = "Invalid request format. Please use the format yyyy-MM-dd for dates.";
+    public static final String DATA_UNREADABLE = "Malformed or unreadable request body.";
 
 
 
