@@ -1,4 +1,4 @@
-package com.example.Booking.kafka;
+package com.example.Booking.service.basic;
 
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,15 +8,15 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 
 @Service
-public class KafkaEmailProducer {
+public class ConfirmationEmailService {
 
-    private static final Logger logger = LoggerFactory.getLogger(KafkaEmailProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConfirmationEmailService.class);
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Value("${booking.kafka.topic}")
     private String topic;
 
-    public KafkaEmailProducer(KafkaTemplate<String, String> kafkaTemplate) {
+    public ConfirmationEmailService(KafkaTemplate<String, String> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 

@@ -7,7 +7,7 @@ import com.example.Booking.dto.BookingDto;
 import com.example.Booking.exception.BookingAlreadyCancelledException;
 import com.example.Booking.exception.ResourceNotFoundException;
 import com.example.Booking.exception.RoomUnavailableException;
-import com.example.Booking.kafka.KafkaEmailProducer;
+import com.example.Booking.service.basic.ConfirmationEmailService;
 import com.example.Booking.mapper.BookingMapper;
 import com.example.Booking.model.table.Booking;
 import com.example.Booking.model.table.Room;
@@ -19,8 +19,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 public class BookingService {
 
@@ -29,11 +27,11 @@ public class BookingService {
     private final BookingMapper bookingMapper;
     private final ApplicationEventPublisher eventPublisher;
 
-    private final KafkaEmailProducer kafkaEmailProducer;
+    private final ConfirmationEmailService kafkaEmailProducer;
 
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 
-    public BookingService(BookingRepository bookingRepository, RoomService roomService, BookingMapper bookingMapper, ApplicationEventPublisher eventPublisher, KafkaEmailProducer kafkaEmailProducer) {
+    public BookingService(BookingRepository bookingRepository, RoomService roomService, BookingMapper bookingMapper, ApplicationEventPublisher eventPublisher, ConfirmationEmailService kafkaEmailProducer) {
         this.bookingRepository = bookingRepository;
         this.roomService = roomService;
         this.bookingMapper = bookingMapper;
