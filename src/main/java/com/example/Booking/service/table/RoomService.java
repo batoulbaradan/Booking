@@ -9,7 +9,6 @@ import com.example.Booking.model.table.Room;
 import com.example.Booking.repository.table.RoomRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +61,9 @@ public class RoomService {
     }
 
     public Room save(Room room) {
+
         try {
+//            room.setRoomNumber(null);
           return roomRepository.save(room);
         } catch (DataIntegrityViolationException ex) {
             Throwable root = ex.getRootCause();

@@ -1,8 +1,8 @@
 package com.example.Booking.restController.table;
 
 
+import com.example.Booking.dto.BookingDetailDto;
 import com.example.Booking.dto.BookingDto;
-import com.example.Booking.dto.RoomDto;
 import com.example.Booking.response.ApiResponse;
 import com.example.Booking.service.table.BookingService;
 import jakarta.validation.Valid;
@@ -21,8 +21,8 @@ public class BookingRestController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookingDto>> getBookingById(@PathVariable Long id) {
-        BookingDto bookingDTO = bookingService.getBookingById(id);
+    public ResponseEntity<ApiResponse<BookingDetailDto>> getBookingById(@PathVariable Long id) {
+        BookingDetailDto bookingDTO = bookingService.getBookingDetailById(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Booking retrieved successfully", bookingDTO));
     }
 

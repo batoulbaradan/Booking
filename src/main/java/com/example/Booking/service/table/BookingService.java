@@ -2,8 +2,8 @@ package com.example.Booking.service.table;
 
 
 import com.example.Booking.Enum.BookingStatus;
+import com.example.Booking.dto.BookingDetailDto;
 import com.example.Booking.dto.BookingDto;
-import com.example.Booking.dto.RoomDto;
 import com.example.Booking.exception.BookingAlreadyCancelledException;
 import com.example.Booking.exception.ResourceNotFoundException;
 import com.example.Booking.exception.RoomUnavailableException;
@@ -32,10 +32,13 @@ public class BookingService {
         this.bookingMapper = bookingMapper;
     }
 
-    public BookingDto getBookingById(Long id) {
-        Booking booking = bookingRepository.findById(id)
+    public Booking getBookingById(Long id) {
+        return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking with ID " + id + " not found"));
-        return bookingMapper.toDto(booking);
+    }
+    public BookingDetailDto getBookingDetailById(Long id) {
+        Booking booking = getBookingById(id);
+        return bookingMapper.toDetailDto(booking);
     }
 
 //    @Transactional
@@ -77,7 +80,7 @@ public class BookingService {
             booking.setStatus(BookingStatus.CONFIRMED);
 
             Booking savedBooking = bookingRepository.save(booking);
-
+            System.err.println(savedBooking);
             // Update room availability
             room.setAvailable(false);
             roomService.save(room);
@@ -87,7 +90,7 @@ public class BookingService {
 
             return bookingMapper.toDto(savedBooking);
 
-        } catch (RoomUnavailableException | ResourceNotFoundException ex) {
+        } catch (RoomUnavailableException | ResourceNotFoundException  | IllegalArgumentException ex) {
             throw ex;
         } catch (DataIntegrityViolationException ex) {
             throw new DataIntegrityViolationException("Failed to create booking due to database constraints", ex);
@@ -98,6 +101,10 @@ public class BookingService {
 
 
     private void validateRoomAvailability(BookingDto bookingDto) {
+
+            if ( !bookingDto.getCheckOut().isAfter(bookingDto.getCheckIn())){
+            throw new IllegalArgumentException("Check-out date must be after check-in date.");
+        }
         List<Booking> existingBookings = bookingRepository.findByRoomIdAndStatus(
                 bookingDto.getRoomId(), BookingStatus.CONFIRMED
         );
@@ -108,7 +115,7 @@ public class BookingService {
         );
 
         if (overlaps) {
-            throw new RoomUnavailableException("Room is already booked for the selected dates.");
+            throw new RoomUnavailableException("Booking conflict: Room is already booked for the selected dates.");
         }
     }
 

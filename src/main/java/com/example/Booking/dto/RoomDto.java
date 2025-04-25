@@ -1,16 +1,15 @@
 package com.example.Booking.dto;
 
-import jakarta.persistence.Column;
 import lombok.*;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class RoomDto {
+
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @NotBlank(message = "Room number is required")
@@ -22,6 +21,6 @@ public class RoomDto {
     @NotNull(message = "Price per night is required")
     @DecimalMin(value = "0.0", inclusive = false, message = "Price must be greater than 0")
     private BigDecimal pricePerNight;
-
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private boolean available;
 }

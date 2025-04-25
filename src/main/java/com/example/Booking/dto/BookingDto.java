@@ -1,9 +1,8 @@
 package com.example.Booking.dto;
 
 import com.example.Booking.Enum.BookingStatus;
-import com.example.Booking.model.table.Room;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.persistence.*;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -12,6 +11,7 @@ import jakarta.validation.constraints.NotNull;
 @Data
 public class BookingDto {
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private Long id;
 
     @NotNull(message = "Room ID must not be null")
@@ -28,6 +28,8 @@ public class BookingDto {
     @NotNull(message = "Check-out date must not be null")
     private LocalDate checkOut;
 
+    @Schema(accessMode = Schema.AccessMode.READ_ONLY)
     private BookingStatus status;
+
 
 }

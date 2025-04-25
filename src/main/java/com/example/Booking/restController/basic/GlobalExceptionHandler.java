@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(RoomUnavailableException.class)
     public ResponseEntity<ApiResponse<String>> handleRoomUnavailableException(RoomUnavailableException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ApiResponse<>(false, ErrorMessages.ROOM_UNAVAILABLE, ex.getMessage()));
     }
 
