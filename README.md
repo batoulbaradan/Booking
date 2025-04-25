@@ -226,3 +226,16 @@ Overlapping Bookings: One of the main challenges was ensuring that room bookings
 Room Availability Management: I had to handle dynamic availability of rooms based on bookings, ensuring that once a booking was confirmed, the room's availability was updated.
 
 Error Handling and Validation: Implemented robust error handling and validation mechanisms to ensure the system provides meaningful responses to invalid requests, preventing issues like incorrect room numbers or missing fields.
+
+🙋‍♂️ About Me
+I'm a passionate backend developer who enjoys building robust and maintainable systems. This project showcases my ability to apply:
+
+Clean architecture
+
+Event-driven patterns
+
+Error handling best practices
+
+And most importantly, my attention to detail in real-world scenarios
+
+I’m actively looking for opportunities to grow in a professional environment where I can contribute to impactful products. If you have any questions or feedback, feel free to reach out!
