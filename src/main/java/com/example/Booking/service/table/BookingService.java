@@ -25,18 +25,15 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final RoomService roomService;
     private final BookingMapper bookingMapper;
-    private final ApplicationEventPublisher eventPublisher;
-
-    private final ConfirmationEmailService kafkaEmailProducer;
+    private final ConfirmationEmailService confirmationEmailService;
 
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 
-    public BookingService(BookingRepository bookingRepository, RoomService roomService, BookingMapper bookingMapper, ApplicationEventPublisher eventPublisher, ConfirmationEmailService kafkaEmailProducer) {
+    public BookingService(BookingRepository bookingRepository, RoomService roomService, BookingMapper bookingMapper, ConfirmationEmailService confirmationEmailService) {
         this.bookingRepository = bookingRepository;
         this.roomService = roomService;
         this.bookingMapper = bookingMapper;
-        this.eventPublisher = eventPublisher;
-        this.kafkaEmailProducer = kafkaEmailProducer;
+        this.confirmationEmailService = confirmationEmailService;
     }
 
 
@@ -80,9 +77,8 @@ public class BookingService {
                     booking.getCheckIn(),
                     booking.getCheckOut()
             );
-            kafkaEmailProducer.sendEmail(message);
-//            logEmailConfirmation(savedBooking);
-//            eventPublisher.publishEvent(new BookingConfirmedEvent(booking));
+            confirmationEmailService.sendEmail(message);
+
 
             return bookingMapper.toDto(savedBooking);
 
