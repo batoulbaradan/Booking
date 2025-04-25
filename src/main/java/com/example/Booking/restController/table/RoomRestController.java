@@ -22,12 +22,16 @@ public class RoomRestController {
         this.roomService = roomService;
     }
 
+    //Retrieves all rooms, optionally filtered by availability.
+    //return ResponseEntity with list of RoomDto wrapped in ApiResponse
     @GetMapping
     public ResponseEntity<ApiResponse<List<RoomDto>>> getAllRooms(@RequestParam(required = false,name = "available" ) Boolean available) {
         List<RoomDto> books = roomService.getAllRooms(Optional.ofNullable(available));
         return ResponseEntity.ok(new ApiResponse<>(true, "Rooms retrieved successfully", books));
     }
 
+    //Creates a new room and marks it as available by default.
+    //return ResponseEntity with created RoomDto wrapped in ApiResponse
     @PostMapping
     public ResponseEntity<ApiResponse<RoomDto>> addRoom(@Valid @RequestBody RoomDto roomDto) {
         RoomDto savedRoom = roomService.CreateRoom(roomDto);

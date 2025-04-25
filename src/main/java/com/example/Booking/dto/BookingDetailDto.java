@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
+
+// Detailed booking information returned to clients,
+// including room details and booking metadata.
 @Data
 public class BookingDetailDto {
     private Long id;

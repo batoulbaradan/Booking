@@ -5,10 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 @Entity
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 @Table(name = "room")
 public class Room {
     @Id

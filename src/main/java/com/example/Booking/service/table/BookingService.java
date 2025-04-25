@@ -7,72 +7,61 @@ import com.example.Booking.dto.BookingDto;
 import com.example.Booking.exception.BookingAlreadyCancelledException;
 import com.example.Booking.exception.ResourceNotFoundException;
 import com.example.Booking.exception.RoomUnavailableException;
+import com.example.Booking.kafka.KafkaEmailProducer;
 import com.example.Booking.mapper.BookingMapper;
 import com.example.Booking.model.table.Booking;
 import com.example.Booking.model.table.Room;
 import com.example.Booking.repository.table.BookingRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 @Service
 public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final RoomService roomService;
     private final BookingMapper bookingMapper;
+    private final ApplicationEventPublisher eventPublisher;
+
+    private final KafkaEmailProducer kafkaEmailProducer;
+
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
 
-    public BookingService(BookingRepository bookingRepository, RoomService roomService, BookingMapper bookingMapper) {
+    public BookingService(BookingRepository bookingRepository, RoomService roomService, BookingMapper bookingMapper, ApplicationEventPublisher eventPublisher, KafkaEmailProducer kafkaEmailProducer) {
         this.bookingRepository = bookingRepository;
         this.roomService = roomService;
         this.bookingMapper = bookingMapper;
+        this.eventPublisher = eventPublisher;
+        this.kafkaEmailProducer = kafkaEmailProducer;
     }
 
+
+    //    Retrieves a booking by its ID.
     public Booking getBookingById(Long id) {
         return bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking with ID " + id + " not found"));
     }
+
+    //    Retrieves booking details with room info
     public BookingDetailDto getBookingDetailById(Long id) {
-        Booking booking = getBookingById(id);
+        Booking booking = bookingRepository.findWithRoomById(id).orElseThrow(() -> new ResourceNotFoundException("Booking with ID " + id + " not found"));
         return bookingMapper.toDetailDto(booking);
     }
 
-//    @Transactional
-//    public BookingDto createBooking(BookingDto bookingDto) {
-//        Room room = roomService.getRoomById(bookingDto.getRoomId());
-//
-//        validateRoomAvailability(bookingDto);
-//
-//        Booking booking = bookingMapper.toEntity(bookingDto);
-//        booking.setRoom(room);
-//        booking.setStatus(BookingStatus.CONFIRMED);
-//
-//        try {
-//            Booking savedBooking = bookingRepository.save(booking);
-//            room.setAvailable(false);
-//            roomService.save(room);
-////            roomService.updateRoomAvailability(room.getId(), false);
-//
-//            logEmailConfirmation(savedBooking);
-//            return bookingMapper.toDto(savedBooking);
-//        } catch (DataIntegrityViolationException ex) {
-//            throw new DataIntegrityViolationException("Failed to create booking: " + ex.getMessage());
-//        }
-//        catch (Exception ex) {
-//            throw new RuntimeException("Unexpected error occurred while booking: " + ex.getMessage());
-//        }
-//    }
-
+    //Creates a new booking if room is available and dates are valid.
 
     @Transactional
     public BookingDto createBooking(BookingDto bookingDto) {
         try {
             Room room = roomService.getRoomById(bookingDto.getRoomId());
 
+            // Prevent overlapping bookings
             validateRoomAvailability(bookingDto);
 
             Booking booking = bookingMapper.toEntity(bookingDto);
@@ -80,17 +69,26 @@ public class BookingService {
             booking.setStatus(BookingStatus.CONFIRMED);
 
             Booking savedBooking = bookingRepository.save(booking);
-            System.err.println(savedBooking);
-            // Update room availability
+
+            // Mark room as unavailable
             room.setAvailable(false);
             roomService.save(room);
 
-            // Simulate email
-            logEmailConfirmation(savedBooking);
+            // Simulate email confirmation via Kafka
+            String message = String.format(
+                    "Booking confirmed for %s, Room #%s, from %s to %s",
+                    booking.getCustomerName(),
+                    booking.getRoom().getRoomNumber(),
+                    booking.getCheckIn(),
+                    booking.getCheckOut()
+            );
+            kafkaEmailProducer.sendEmail(message);
+//            logEmailConfirmation(savedBooking);
+//            eventPublisher.publishEvent(new BookingConfirmedEvent(booking));
 
             return bookingMapper.toDto(savedBooking);
 
-        } catch (RoomUnavailableException | ResourceNotFoundException  | IllegalArgumentException ex) {
+        } catch (RoomUnavailableException | ResourceNotFoundException | IllegalArgumentException ex) {
             throw ex;
         } catch (DataIntegrityViolationException ex) {
             throw new DataIntegrityViolationException("Failed to create booking due to database constraints", ex);
@@ -99,30 +97,25 @@ public class BookingService {
         }
     }
 
-
+    // Validates if the room is available for the requested date range.
+    // Also ensures check-in is before check-out.
     private void validateRoomAvailability(BookingDto bookingDto) {
 
-            if ( !bookingDto.getCheckOut().isAfter(bookingDto.getCheckIn())){
+        if (!bookingDto.getCheckOut().isAfter(bookingDto.getCheckIn())) {
             throw new IllegalArgumentException("Check-out date must be after check-in date.");
         }
-        List<Booking> existingBookings = bookingRepository.findByRoomIdAndStatus(
-                bookingDto.getRoomId(), BookingStatus.CONFIRMED
-        );
-
-        boolean overlaps = existingBookings.stream().anyMatch(existing ->
-                bookingDto.getCheckIn().isBefore(existing.getCheckOut()) &&
-                        bookingDto.getCheckOut().isAfter(existing.getCheckIn())
-        );
-
-        if (overlaps) {
+        // Check if there are any confirmed bookings that overlap with the requested date range for the same room
+        if (bookingRepository.countOverlappingBookings(bookingDto.getRoomId(), bookingDto.getCheckIn(), bookingDto.getCheckOut(),BookingStatus.CONFIRMED)>0) {
             throw new RoomUnavailableException("Booking conflict: Room is already booked for the selected dates.");
         }
     }
 
+    // Cancels an existing booking and updates room availability.
     public BookingDto cancelBooking(Long bookingId) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking with ID " + bookingId + " not found"));
 
+        // if it's status is canceled throw BookingAlreadyCancelledException
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             throw new BookingAlreadyCancelledException("Booking is already cancelled.");
         }
@@ -134,7 +127,7 @@ public class BookingService {
 
     private void logEmailConfirmation(Booking booking) {
         logger.info("Simulated email sent to {} for booking Room #{} from {} to {}", booking.getCustomerName(),
-                booking.getId(),booking.getCheckIn(),
+                booking.getId(), booking.getCheckIn(),
                 booking.getCheckOut());
     }
 }

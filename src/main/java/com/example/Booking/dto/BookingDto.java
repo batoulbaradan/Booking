@@ -8,6 +8,8 @@ import lombok.*;
 import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
+
+// DTO used for creating or retrieving booking requests.
 @Data
 public class BookingDto {
 

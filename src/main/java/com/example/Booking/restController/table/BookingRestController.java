@@ -20,18 +20,23 @@ public class BookingRestController {
         this.bookingService = bookingService;
     }
 
+    // Retrieves booking details by ID.
+    //return ResponseEntity with booking details wrapped in ApiResponse
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<BookingDetailDto>> getBookingById(@PathVariable Long id) {
         BookingDetailDto bookingDTO = bookingService.getBookingDetailById(id);
         return ResponseEntity.ok(new ApiResponse<>(true, "Booking retrieved successfully", bookingDTO));
     }
-
+    //Creates a new booking
+    //ResponseEntity with created booking info wrapped in ApiResponse
     @PostMapping
     public ResponseEntity<ApiResponse<BookingDto>> addBooking(@Valid @RequestBody BookingDto bookingDto) {
         BookingDto savedBooking = bookingService.createBooking(bookingDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>(true, "Booking added successfully", savedBooking));
     }
 
+    //Cancels an existing booking by ID.
+    //return ResponseEntity with updated booking status wrapped in ApiResponse
     @PutMapping("/{id}/cancel")
     public ResponseEntity<ApiResponse<BookingDto>> cancelBooking(@PathVariable Long id) {
         BookingDto bookingDto = bookingService.cancelBooking(id);

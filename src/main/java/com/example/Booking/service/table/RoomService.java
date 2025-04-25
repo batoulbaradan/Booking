@@ -25,34 +25,25 @@ public class RoomService {
         this.roomMapper = roomMapper;
     }
 
+    //Retrieves a list of rooms, optionally filtered by availability.
     public List<RoomDto> getAllRooms(Optional<Boolean> available) {
 
         List<Room> roomDtoList = available
-                .map(roomRepository::findByAvailable)
-                .orElse(roomRepository.findAll());
+                .map(roomRepository::findByAvailable)// filter if available is present
+                .orElse(roomRepository.findAll()); // otherwise return all rooms
 
         return roomDtoList.stream()
                 .map(roomMapper::toDto)
                 .collect(Collectors.toList());
     }
 
+    // Fetches a room by its ID
     public Room getRoomById(Long id) {
-        Room room = roomRepository.findById(id)
+        return roomRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Room with ID " + id + " not found"));
-        return room;
     }
 
-//    @Transactional
-//    public void updateRoomAvailability(Long id, Boolean available) {
-//        Room room = getRoomById(id);
-//
-//        room.setAvailable(available);
-//
-//        roomRepository.save(room);
-//    }
-
-
-
+    //Creates a new room and marks it as available by default.
     public RoomDto CreateRoom(RoomDto roomDto) {
             Room room = roomMapper.toEntity(roomDto);
             room.setAvailable(true);
@@ -60,10 +51,11 @@ public class RoomService {
             return roomMapper.toDto(saved);
     }
 
+    // Saves a room entity to the database with validation.
+    // Handles duplicate room number constraint (unique).
     public Room save(Room room) {
 
         try {
-//            room.setRoomNumber(null);
           return roomRepository.save(room);
         } catch (DataIntegrityViolationException ex) {
             Throwable root = ex.getRootCause();

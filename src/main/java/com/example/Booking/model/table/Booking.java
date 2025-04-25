@@ -22,7 +22,8 @@ public class Booking {
     private LocalDate checkOut;
     @Column(name = "status", nullable = false)
     private BookingStatus status;
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "room_id",nullable = false)
+    //    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "room_id", nullable = false)
     private Room room;
 }
